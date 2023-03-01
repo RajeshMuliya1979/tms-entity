@@ -1,0 +1,30 @@
+name: Publish Nuget
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+    
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      
+    - name: Build
+      run: dotnet build --configuration Release /p:Version=${VERSION}
+      
+    - name: Test
+      run: dotnet test --configuration Release /p:Version=${VERSION} --no-build
+      
+    - name: Pack
+      run: dotnet pack --configuration Release /p:Version=${VERSION} --no-build --output
+      
+    - name: Push      
+      run: dotnet nuget push TMS.Entity.${VERSION}.nupkg --source https://nuget.pathquest.com/nuget --api-key ${GITHUB_TOKEN}
+      env:
+        GITHUB_TOKEN: ${{ secrets.NUGET_SECRET }}
